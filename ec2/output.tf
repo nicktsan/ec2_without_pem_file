@@ -1,7 +1,7 @@
 output "public_ip" {
-  value = ""
+  value = aws_instance.web.public_ip
 }
 
 output "public_dns" {
-  value = ""
+  value = aws_instance.web.public_dns
 }
