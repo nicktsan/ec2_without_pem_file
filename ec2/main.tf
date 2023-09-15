@@ -147,6 +147,6 @@ resource "aws_instance" "private" {
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.id
   associate_public_ip_address = false
   tags = {
-    Name = "HelloWorld"
+    Name = "HelloWorld-Private"
   }
 }
