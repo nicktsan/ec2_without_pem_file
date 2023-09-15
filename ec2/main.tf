@@ -8,6 +8,48 @@
 //attach policy to enable session manager
 //iam instance profile to be attached to the instance
 
+//Define a firewall security group that will allow virtual machines within the VPC to access each other
+//Create VPC bound security group
+resource "aws_security_group" "vpcbound" {
+  name        = "vpcbound"
+  description = "VPC bound traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [data.aws_vpc.selected.cidr_block] #VPC CIDR
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    //Name = "allow_tls"
+    Name = "vpc_bound"
+  }
+}
+
+//vpc endpoints can be used to enable only private access, but they cost money.
+// - com.amazonaws.us-east-1.ec2messages
+// - com.amazonaws.us-east-1.ssm
+// - com.amazonaws.us-east-1.ssmmessages
+resource "aws_vpc_endpoint" "interface" {
+  //loop through all vpc endpoints in locals.tf file
+  for_each            = toset(local.vpc_endpoints)
+  vpc_id              = var.vpc_id
+  service_name        = each.key
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.vpcbound.id]
+  private_dns_enabled = true
+  subnet_ids          = data.aws_subnets.example.ids
+}
+
 //Add IAM role
 resource "aws_iam_role" "ec2_role" {
   name = "ec2roleforssm"
@@ -50,7 +92,7 @@ resource "aws_security_group" "secgroup" {
   name        = "secgroup"
   description = "Allow public access"
   vpc_id      = var.vpc_id
-
+  /*#comment out this ingress block when we don't want the ec2 instance to be publicly accessible
   ingress {
     #port 22 is the ssh port
     #from_port = 22
@@ -64,7 +106,7 @@ resource "aws_security_group" "secgroup" {
     //restrict ingress to just the necessary IPs and ports 
     cidr_blocks = ["0.0.0.0/0"]
   }
-
+  */
   egress {
     from_port   = 0
     to_port     = 0
@@ -88,6 +130,22 @@ resource "aws_instance" "web" {
   security_groups = [aws_security_group.secgroup.id]
   //This allows for access via system manager
   iam_instance_profile = aws_iam_instance_profile.ec2_profile.id
+  tags = {
+    Name = "HelloWorld"
+  }
+}
+
+//Create a private instance that we can connect to with session manager
+resource "aws_instance" "private" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.micro"
+  //data.aws_subnet_ids.example.ids returns a set of ids, but we only need one
+  //Therefore, we will sort the set, convert it into a list, and grab the first element.
+  subnet_id       = sort(data.aws_subnets.example.ids)[0]
+  security_groups = [aws_security_group.secgroup.id]
+  //This allows for access via system manager
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.id
+  associate_public_ip_address = false
   tags = {
     Name = "HelloWorld"
   }

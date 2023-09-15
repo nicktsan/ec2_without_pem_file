@@ -1,4 +1,4 @@
-This project creates an EC2 instance and manage them with ssh.
+This project creates an EC2 instance and manage them with ssh or session manager.
 
 Command to generate ssh keys:
 ssh-keygen -f <path to ssh private key>

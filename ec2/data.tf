@@ -21,3 +21,7 @@ data "aws_subnets" "example" {
     values = [var.vpc_id]
   }
 }
+
+data "aws_vpc" "selected" {
+  id = var.vpc_id
+}
