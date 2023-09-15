@@ -29,3 +29,8 @@ terraform apply out.tfplan
 The public ip and public dns should appear in the terminal output.
 To connect to the ec2 instance use:
 ssh ubuntu@<public IP address> -i <path to your ssh private key>
+
+Depnding on how main.tf is configured, you the ec2 instance can be accessed via session manager via AWS Console.
+EC2 > Instance > (my instance) > Connect to instance > Session Manager > Connect
+Once connected, run the command below to use the ec2 instance:
+sudo su - ubuntu
