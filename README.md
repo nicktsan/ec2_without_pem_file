@@ -1,4 +1,4 @@
-This project creates an EC2 instance without using PEM files
+This project creates an EC2 instance and manage them with ssh.
 
 Command to generate ssh keys:
 ssh-keygen -f <path to ssh private key>
@@ -22,3 +22,10 @@ This will save the output of the plan to a file and create the workspace in your
 Alternatively, if you want to use an input file to avoid manually inputting values for region, vpc_id, and ssh_public_key, run:
 terraform plan -var-file input.tfvars -out out.tfplan
 where input.tfvars contains values for region, vpc_id, and ssh_public_key
+
+After planning is finished, create the aws infrastructure with
+terraform apply out.tfplan
+
+The public ip and public dns should appear in the terminal output.
+To connect to the ec2 instance use:
+ssh ubuntu@<public IP address> -i <path to your ssh private key>
